@@ -22,13 +22,23 @@ abstract class Model extends IlluminateModel {
     protected $label = null;
 
     /**
-     * Set the node label for this model
+     * Set the node label for this model.
      *
      * @param  string|array  $labels
      */
     public function setLabel($label)
     {
-        return $this->label = $label;
+        $this->label = $label;
+    }
+
+    /**
+     * Get the node label for this model.
+     *
+     * @return string|array
+     */
+    public function getLabel()
+    {
+        return $this->label;
     }
 
     /**
