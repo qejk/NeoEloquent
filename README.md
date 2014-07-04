@@ -13,7 +13,9 @@ Neo4j Graph Eloquent Driver for Laravel 4
  - [Relationships](#relationships)
  - [Edges](#edges)
  - [Only in Neo](#only-in-neo)
- - [Aggregates](#aggregates)
+ - [Aggregates](#aggregates) 
+ - [Migration](#migration)
+ - [Schema](#schema) 
  - [Things To Avoid](#avoid)
 
 ## Installation
@@ -37,6 +39,37 @@ Add the service provider in `app/config/app.php`:
 The service provider will register all the required classes for this package and will also alias
 the `Model` class to `NeoEloquent` so you can simply `extend NeoEloquent` in your models.
 
+####Migration
+Additionally NeoEloquent have migration support with Neo4j schema feature. 
+To use it first you need to update `composer.json` file by adding additional line to autoload class map: 
+
+	"app/database/labels",
+	
+So your `composer.json` would look like this:
+
+```json
+"autoload": {
+	"classmap": [
+		"app/commands",
+		"app/controllers",
+		"app/models",
+		"app/database/labels",
+		"app/database/migrations",
+		"app/database/seeds",
+		"app/tests/TestCase.php"
+	]
+},
+```
+And run:
+	
+	composer dumpautoload
+	
+Second step requires registering additional alias in `app/config/app.php`:
+
+```php
+'Neo4jSchema' => 'Vinelab\NeoEloquent\Facade\Neo4jSchema'
+```
+
 ## Configuration
 in `app/config/database.php` or in case of an environment-based configuration `app/config/[env]/database.php`
 make `neo4j` your default connection:
@@ -55,6 +88,11 @@ Add the connection defaults:
         'port'   => '7474'
     ]
 ]
+```
+If you want to use migration feature with custom node label you can do that by adding to `database.php` configuration file:
+
+```php
+'migrations_node' => 'YourMigrationNodeLabel',
 ```
 
 ### Documentation
@@ -896,6 +934,131 @@ $population = DB::table('User')->stdevp('sex');
 $emails = DB::table('User')->collect('email');
 ```
 
+
+## Migration
+You can read more about migration on:
+
+<http://laravel.com/docs/migrations>
+
+Because Neo4j is dynamic database you don't need to predefine types of properties for each label. However by few limitations on Neo4j - NeoEloquent comes to rescue to make them as pain-less as possible.
+
+####Commands
+NeoEloquent introduces new commands just for Neo4j. You can use Laravel's default migration commands side by side with NeoEloquent migration ones:
+	
+	neo4j:make                   Create a new migration file
+	neo4j:migrate                Run the database migrations
+	neo4j:refresh                Reset and re-run all migrations
+	neo4j:reset                  Rollback all database migrations
+	neo4j:rollback               Rollback the last database migration
+
+
+###Creating Migrations
+
+Like in Laravel you can create new migration by using added command: `neo4j:make` on the Artisan CLI:
+
+	php artisan neo4j:make create_user_label
+
+Label migrations will be placed `app/database/labels` (**remember about registering new autoload classmap on `composer.json`!(and running `composer dumpautoload` after)**
+
+You can add additional options to commands like:
+
+	php artisan neo4j:make foo --path=app/labels
+	php artisan neo4j:make create_user_label --create=User
+	php artisan neo4j:make create_user_label --label=User
+	
+	
+###Running Migrations
+ 
+#####Running All Outstanding Migrations
+
+	php artisan neo4j:migrate
+#####Running All Outstanding Migrations For A Path
+
+	php artisan neo4j:migrate --path=app/foo/labels
+#####Running All Outstanding Migrations For A Package
+
+	php artisan neo4j:migrate --package=vendor/package
+>Note: If you receive a "class not found" error when running migrations, try running the composer `dump-autoload` command.
+
+####Forcing Migrations In Production
+To force running migration on production database you can use:
+
+	php artisan neo4j:migrate --force
+	
+###Rolling Back Migrations
+
+#####Rollback The Last Migration Operation
+
+	php artisan neo4j:rollback
+#####Rollback all migrations
+
+	php artisan neo4j:reset
+#####Rollback all migrations and run them all again
+
+	php artisan neo4j:refresh
+
+	php artisan neo4j:refresh --seed	
+
+## Schema
+
+You can read more about schema on:
+
+<http://laravel.com/docs/schema>
+
+To manipulate label's schema, the `Neo4jSchema::label` is used:
+
+```php
+Neo4jSchema::label('User', function(Blueprint $label)
+{
+    $label->unique('uuid');
+});
+```
+Currently Neo4j supports `UNIQUE` constraint and `INDEX` on properties. You can read more about them:
+
+<http://docs.neo4j.org/chunked/stable/graphdb-neo4j-schema.html>
+
+ You can use them by adding $label->{KEY}({PROPERTY_NAME}):
+ 
+Command 						| Description
+------------ 					| -------------
+$label->unique('email')   		| Adding a unique constraint on property
+$label->dropUnique('email') 	| Dropping a unique constraint from property
+$label->index('uuid') 		 	| Adding a index on property
+$label->dropUnique('uuid')  	| Dropping a index from property 
+
+###Droping Labels
+
+To drop a label, you may use the Neo4jSchema::drop method:
+```php
+Neo4jSchema::drop('User');
+Neo4jSchema::dropIfExists('User');
+```
+###Renaming Labels
+```php
+Neo4jSchema::renameLabel($from, $to);
+```
+###Checking Existence Of Label:
+```php
+if (Neo4jSchema::hasLabel('User')) 
+{
+	//
+} 
+else 
+{
+	//
+}
+```
+###Checking Existence Of Relation:
+```php
+if (Neo4jSchema::hasRelation('FRIEND_OF')) 
+{
+	//
+} 
+else 
+{
+	//
+}
+```
 ## Changelog
 Check the [Releases](https://github.com/Vinelab/NeoEloquent/releases) for details.
 
@@ -926,6 +1089,7 @@ User::create(['name' => 'Some Name', 'location' => ['lat' => 123, 'lng'=> -123 ]
 Check out the [createWith()](#createwith) method on how you can achieve this in a Graph way.
 
 ## Tests
+**Tests will actually wipe database, so never run tests on populated database!**
 
 - install a Neo4j instance and run it with the default configuration `localhost:7474`
 - make sure the database graph is empty to avoid conflicts

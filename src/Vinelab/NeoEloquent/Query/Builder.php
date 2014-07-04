@@ -140,6 +140,19 @@ class Builder extends IlluminateQueryBuilder {
     }
 
     /**
+     * Run a truncate statement on the table.
+     *
+     * @return void
+     */
+    public function truncate()
+    {
+        foreach ($this->grammar->compileTruncate($this) as $cypher)
+        {
+            $this->connection->statement($cypher, []);
+        }
+    }
+
+    /**
      * Get the current query value bindings in a flattened array
      * of $key => $value.
      *

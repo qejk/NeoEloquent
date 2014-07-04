@@ -39,6 +39,28 @@ class Builder {
     }
 
     /**
+     * Fallback.
+     *
+     * @param  string  $label
+     * @return boolean
+     * @throws RuntimeException
+     */
+    public function hasTable($label)
+    {
+        throw new \RuntimeException("
+Please use commands from namespace:
+    neo4j:
+    neo4j:migrate
+    neo4j:reset
+    neo4j:rollback
+    neo4j:make
+If your default database is set to 'neo4j' and you want use other databases side by side with Neo4j
+you can do so by passing additional arguments to default migration command like:
+    php artisan migrate --database=mysql
+        ");
+    }
+
+    /**
      * Create a new data dafintion on label schema.
      *
      * @param  string   $label

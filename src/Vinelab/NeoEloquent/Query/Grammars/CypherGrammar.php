@@ -435,6 +435,26 @@ class CypherGrammar extends Grammar {
         return "$match $where DELETE " . $query->modelAsNode();
     }
 
+    /**
+     * Compile a truncate table statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return array
+     */
+    public function compileTruncate(Builder $query)
+    {
+        $match = $this->compileComponents($query, array('from'));
+        $match = $match['from'];
+        $node = $query->modelAsNode();
+
+        $cypher = array();
+
+        $cypher[] = "$match-[r]-() DELETE $node, r";
+        $cypher[] = "$match DELETE " . $query->modelAsNode();
+
+        return $cypher;
+    }
+
     public function compileWith(Builder $query, $with)
     {
         $parts = [];

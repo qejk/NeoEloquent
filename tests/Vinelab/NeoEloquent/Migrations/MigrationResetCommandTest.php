@@ -3,9 +3,10 @@
 use Mockery as M;
 use Vinelab\NeoEloquent\Tests\TestCase;
 use Vinelab\NeoEloquent\Console\Migrations\ResetCommand;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
-class MigrationResetCommandTest extends TestCase
-{
+class MigrationResetCommandTest extends TestCase {
 
     public function tearDown()
     {
@@ -39,7 +40,7 @@ class MigrationResetCommandTest extends TestCase
 
     protected function runCommand($command, $input = array())
     {
-        return $command->run(new Symfony\Component\Console\Input\ArrayInput($input), new Symfony\Component\Console\Output\NullOutput);
+        return $command->run(new ArrayInput($input), new NullOutput);
     }
 }
 

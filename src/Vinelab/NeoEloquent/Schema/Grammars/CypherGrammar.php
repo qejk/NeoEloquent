@@ -16,9 +16,10 @@ class CypherGrammar extends Grammar
      */
     public function compileDrop(Blueprint $blueprint, Fluent $command)
     {
-        $label = $this->wrapLabel($blueprint);
+        $match = $this->compileFrom($blueprint);
+        $label = $this->prepareLabels(array($blueprint));
 
-        return "MATCH (n$label) REMOVE n$label";
+        return $match . " REMOVE n" . $label;
     }
 
     /**
@@ -41,9 +42,9 @@ class CypherGrammar extends Grammar
      */
     public function compileLabelExists($label)
     {
-        $label = $this->wrapLabel($label);
+        $match = $this->compileFrom($label);
 
-        return "MATCH (n$label) RETURN n LIMIT 1;";
+        return $match . "  RETURN n LIMIT 1;";
     }
 
     /**
@@ -54,11 +55,10 @@ class CypherGrammar extends Grammar
      */
     public function compileRelationExists($relation)
     {
-        $relation = mb_strtoupper($this->wrapLabel($relation));
+        $relation = mb_strtoupper($this->prepareLabels(array($relation)));
 
         return "MATCH n-[r$relation]->m RETURN r LIMIT 1";
     }
-
 
     /**
      * Compile a rename label command.
@@ -69,10 +69,11 @@ class CypherGrammar extends Grammar
      */
     public function compileRenameLabel(Blueprint $blueprint, Fluent $command)
     {
-        $from = $this->wrapLabel($blueprint);
-        $to = $this->wrapLabel($command->to);
+        $match = $this->compileFrom($blueprint);
+        $from = $this->prepareLabels(array($blueprint));
+        $to = $this->prepareLabels(array($command->to));
 
-        return "MATCH (n:$from) REMOVE n$from SET n$to";
+        return $match . " REMOVE n$from SET n$to";
     }
 
     /**
@@ -156,5 +157,30 @@ class CypherGrammar extends Grammar
         return "$operation CONSTRAINT ON (n$label) ASSERT n.$propertie IS UNIQUE";
     }
 
-}
+    /**
+     * Compile the "from" portion of the query
+     * which in cypher represents the nodes we're MATCHing
+     *
+     * @param  string  $labels
+     * @return string
+     */
+    public function compileFrom($labels)
+    {
+        // first we will check whether we need
+        // to reformat the labels from an array
+        if (is_array($labels))
+        {
+            $labels = $this->prepareLabels($labels);
+        }
 
+        // every label must begin with a ':' so we need to check
+        // and reformat if need be.
+        $labels = ':' . preg_replace('/^:/', '', $labels);
+
+        // now we add the default placeholder for this node
+        $labels = $this->modelAsNode() . $labels;
+
+        return sprintf("MATCH (%s)", $labels);
+    }
+
+}

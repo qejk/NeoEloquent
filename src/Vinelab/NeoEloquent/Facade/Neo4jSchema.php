@@ -27,4 +27,5 @@ class Neo4jSchema extends Facade {
     {
         return static::$app['db']->connection()->getSchemaBuilder();
     }
+
 }
