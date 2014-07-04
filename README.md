@@ -39,7 +39,7 @@ Add the service provider in `app/config/app.php`:
 The service provider will register all the required classes for this package and will also alias
 the `Model` class to `NeoEloquent` so you can simply `extend NeoEloquent` in your models.
 
-####Migration
+####Migration Support
 Additionally NeoEloquent have migration support with Neo4j schema feature. 
 To use it first you need to update `composer.json` file by adding additional line to autoload class map: 
 
