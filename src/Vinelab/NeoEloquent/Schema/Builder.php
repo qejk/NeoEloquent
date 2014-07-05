@@ -11,14 +11,7 @@ class Builder {
      *
      * @var \Illuminate\Database\ConnectionInterface
      */
-    protected $connection;
-
-    /**
-     * The schema grammar instance.
-     *
-     * @var \Illuminate\Database\Schema\Grammars\Grammar
-     */
-    protected $grammar;
+    protected $conn;
 
     /**
      * The Blueprint resolver callback.
@@ -28,14 +21,12 @@ class Builder {
     protected $resolver;
 
     /**
-     * @param  \Illuminate\Database\ConnectionInterface  $connection
-     * @param  \Illuminate\Database\Schema\Grammars\Grammar  $grammar
+     * @param  \Illuminate\Database\ConnectionInterface  $conn
      * @return void
      */
-    public function __construct(ConnectionInterface $connection, IlluminateSchemaGrammar $grammar)
+    public function __construct(ConnectionInterface $conn)
     {
-        $this->connection = $connection;
-        $this->grammar = $grammar;
+        $this->conn = $conn;
     }
 
     /**
@@ -112,7 +103,7 @@ you can do so by passing additional arguments to default migration command like:
      */
     public function hasLabel($label)
     {
-        $cypher = $this->grammar->compileLabelExists($label);
+        $cypher = $this->conn->getSchemaGrammar()->compileLabelExists($label);
 
         return $this->getConnection()->select($cypher, [])->count() > 0;
     }
@@ -125,7 +116,7 @@ you can do so by passing additional arguments to default migration command like:
      */
     public function hasRelation($relation)
     {
-        $cypher = $this->grammar->compileRelationExists($relation);
+        $cypher = $this->conn->getSchemaGrammar()->compileRelationExists($relation);
 
         return $this->getConnection()->select($cypher, [])->count() > 0;
     }
@@ -156,7 +147,7 @@ you can do so by passing additional arguments to default migration command like:
     {
         return $blueprint->build(
             $this->getConnection(),
-            $this->grammar
+            $this->conn->getSchemaGrammar()
         );
     }
 
@@ -188,7 +179,7 @@ you can do so by passing additional arguments to default migration command like:
      */
     public function setConnection(ConnectionInterface $connection)
     {
-        $this->connection = $connection;
+        $this->conn = $connection;
 
         return $this;
     }
@@ -200,7 +191,7 @@ you can do so by passing additional arguments to default migration command like:
      */
     public function getConnection()
     {
-        return $this->connection;
+        return $this->conn;
     }
 
     /**
@@ -214,24 +205,5 @@ you can do so by passing additional arguments to default migration command like:
         $this->resolver = $resolver;
     }
 
-    /**
-     * Set schema grammar.
-     *
-     * @param \Illuminate\Database\Schema\Grammars\Grammar $grammar
-     */
-    public function setSchemaGrammar(IlluminateSchemaGrammar $grammar)
-    {
-        $this->grammar = $grammar;
-    }
-
-    /**
-     * Get schema grammar.
-     *
-     * @return \Vinelab\NeoEloquent\Query\Grammars\Grammar
-     */
-    public function getSchemaGrammar()
-    {
-        return $this->grammar;
-    }
 
 }

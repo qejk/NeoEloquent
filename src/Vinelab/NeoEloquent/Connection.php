@@ -459,7 +459,6 @@ class Connection extends IlluminateConnection {
      */
     protected function getDefaultSchemaGrammar() {}
 
-
     /**
      * Get a schema builder instance for the connection.
      *
@@ -472,7 +471,7 @@ class Connection extends IlluminateConnection {
             $this->useDefaultSchemaGrammar();
         }
 
-        return new Schema\Builder($this, $this->getSchemaGrammar());
+        return new Schema\Builder($this);
     }
 
 }
